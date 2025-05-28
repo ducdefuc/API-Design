@@ -1,0 +1,3052 @@
+{
+	"info": {
+		"_postman_id": "b92e5d66-fc2b-4d87-a928-4bd2d693862d",
+		"name": "Beehive API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "24485743"
+	},
+	"item": [
+		{
+			"name": "Registering users",
+			"item": [
+				{
+					"name": "Registering a new user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {\r",
+									"    pm.response.to.have.status(201)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes a message, correct user details and links\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"    pm.expect(jsonData).to.have.property(\"user\")\r",
+									"    pm.expect(jsonData.user).to.have.property(\"username\")\r",
+									"    pm.expect(jsonData.user).to.have.property(\"_id\")\r",
+									"    pm.expect(jsonData.user.username).to.eql(pm.environment.get(\"uniqueUsername\"))\r",
+									"    pm.expect(jsonData).to.have.property(\"_links\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let uniqueUsername = 'testUser' + Math.floor(Math.random()*1000000)\r",
+									"pm.environment.set('uniqueUsername', uniqueUsername)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\": \"{{uniqueUsername}}\",\r\n  \"password\": \"password\",\r\n  \"role\": \"user\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/authentication/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"authentication",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Registering an existing user",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 409 Conflict\", function () {\r",
+									"    pm.response.to.have.status(409)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response indicates an erorr message that indicates that the user already exists\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"    pm.expect(jsonData.message).to.include(\"User already exists\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\": {{existingUser}},\r\n  \"password\": \"password\",\r\n  \"role\": \"user\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/authentication/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"authentication",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Registering a new user using an invalid role",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let username = 'testUser' + Math.floor(Math.random()*1000000)\r",
+									"pm.environment.set('username', username)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400 Bad Request\", function () {\r",
+									"    pm.response.to.have.status(400)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response returns an error message that indicates that an invalid role is used\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"    pm.expect(jsonData.message).to.include(\"Invalid role\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\": \"{{username}}\",\r\n  \"password\": \"password\",\r\n  \"role\": \"I am an invalid role\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/authentication/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"authentication",
+								"register"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Login users",
+			"item": [
+				{
+					"name": "Login using valid credidentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes a message, an access token, user id and links\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"    pm.expect(jsonData).to.have.property(\"accessToken\")\r",
+									"    pm.expect(jsonData).to.have.property(\"_id\")\r",
+									"    pm.expect(jsonData).to.have.property(\"_links\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\": {{existingUser}},\r\n  \"password\": \"password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/authentication/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"authentication",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login using invalid credidentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {\r",
+									"    pm.response.to.have.status(401)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that wrong credidentials was used\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"    pm.expect(jsonData.message).to.include(\"Invalid username or password\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\": \"Definetly not a real username\",\r\n  \"password\": \"Definetly not a real password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/authentication/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"authentication",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Getting list of beehives",
+			"item": [
+				{
+					"name": "Getting list of all beehives successfully",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes a list of all beehives\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"beehives\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{farmerUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting list of all beehives without being authenticated",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {\r",
+									"    pm.response.to.have.status(401)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting list of all beehives using wrong token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 Forbidden\", function () {\r",
+									"    pm.response.to.have.status(403)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "fake token",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Creating a beehive",
+			"item": [
+				{
+					"name": "Creating a new beehive successfully",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {\r",
+									"    pm.response.to.have.status(201)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes created beehive details and links\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"beehive\")\r",
+									"    pm.expect(jsonData.beehive).to.have.property(\"name\")\r",
+									"    pm.expect(jsonData.beehive).to.have.property(\"location\")\r",
+									"    pm.expect(jsonData.beehive).to.have.property(\"timestamp\")\r",
+									"    pm.expect(jsonData.beehive).to.have.property(\"humidity\")\r",
+									"    pm.expect(jsonData.beehive).to.have.property(\"weight\")\r",
+									"    pm.expect(jsonData.beehive).to.have.property(\"temperature\")\r",
+									"    pm.expect(jsonData.beehive).to.have.property(\"arrivalAndDepartureflow\")\r",
+									"    pm.expect(jsonData.beehive).to.have.property(\"_id\")\r",
+									"    pm.expect(jsonData).to.have.property(\"_links\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{farmerUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"New Hive\",\r\n  \"location\": \"Sweden\",\r\n  \"timestamp\": \"2023-10-04T10:00:00Z\",\r\n  \"humidity\": 60,\r\n  \"weight\": 30,\r\n  \"temperature\": 35,\r\n  \"arrivalAndDepartureflow\": 120\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Creating a new beehive without being authenticated",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {\r",
+									"    pm.response.to.have.status(401)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"New Hive\",\r\n  \"location\": \"Sweden\",\r\n  \"timestamp\": \"2023-10-04T10:00:00Z\",\r\n  \"humidity\": 60,\r\n  \"weight\": 30,\r\n  \"temperature\": 35,\r\n  \"arrivalAndDepartureflow\": 120\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Creating a new beehive using a role without permission",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 Forbidden\", function () {\r",
+									"    pm.response.to.have.status(403)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"New Hive\",\r\n  \"location\": \"Sweden\",\r\n  \"timestamp\": \"2023-10-04T10:00:00Z\",\r\n  \"humidity\": 60,\r\n  \"weight\": 30,\r\n  \"temperature\": 35,\r\n  \"arrivalAndDepartureflow\": 120\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Creating a new beehive using invalid data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400 Bad Request\", function () {\r",
+									"    pm.response.to.have.status(400)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{farmerUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"New Hive\",\r\n  \"location\": \"Sweden\",\r\n  \"timestamp\": \"2023-10-04T10:00:00Z\",\r\n  \"humidity\": 60,\r\n  \"weight\": 30,\r\n  \"temperature\": 35,\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Updating a beehive",
+			"item": [
+				{
+					"name": "Updating a beehive successfully",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let randomName = 'beehive' + Math.floor(Math.random()*1000000)\r",
+									"pm.environment.set('randomNameChange', randomName)\r",
+									"\r",
+									"let randomLocation = 'location' + Math.floor(Math.random()*1000000)\r",
+									"pm.environment.set('randomLocationChange', randomLocation)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes the updated beehive information and links\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"updatedBeehive\")\r",
+									"    pm.expect(jsonData).to.have.property(\"_links\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{farmerUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"{{randomNameChange}}\",\r\n  \"location\": \"{{randomLocationChange}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{existingBeehive}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{existingBeehive}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Updating a beehive without being authenticated",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {\r",
+									"    pm.response.to.have.status(401)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"{{randomNameChange}}\",\r\n  \"location\": \"{{randomLocationChange}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{existingBeehive}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{existingBeehive}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Updating a beehive using a role without permission",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 Forbidden\", function () {\r",
+									"    pm.response.to.have.status(403)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"{{randomNameChange}}\",\r\n  \"location\": \"{{randomLocationChange}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{existingBeehive}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{existingBeehive}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Updating a beehive using an ID for a beehive that doesnt exist",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {\r",
+									"    pm.response.to.have.status(404)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that beehive was not found\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{farmerUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"{{randomNameChange}}\",\r\n  \"location\": \"{{randomLocationChange}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives/6604525d1a5cc860c00a9d70",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"6604525d1a5cc860c00a9d70"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Updating a beehive using a value that is not an id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 500\", function () {\r",
+									"    pm.response.to.have.status(500)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that an invalid ID was used\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{farmerUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"{{randomNameChange}}\",\r\n  \"location\": \"{{randomLocationChange}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives/notanid",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"notanid"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Deleting a beehive",
+			"item": [
+				{
+					"name": "Creating beehive that is gonna be deleted",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json()\r",
+									"\r",
+									"pm.collectionVariables.set(\"beehiveIdForDeletion\", jsonData.beehive._id)\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{farmerUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Im gonna be deleted\",\r\n  \"location\": \"deletionLand\",\r\n  \"timestamp\": \"2023-10-04T10:00:00Z\",\r\n  \"humidity\": 0,\r\n  \"weight\": 0,\r\n  \"temperature\": 0,\r\n  \"arrivalAndDepartureflow\": 0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deleting a beehive successfully",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204 indicating succesful deletion\", function () {\r",
+									"    pm.response.to.have.status(204)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{farmerUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{beehiveIdForDeletion}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{beehiveIdForDeletion}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deleting a beehive without being authenticated",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {\r",
+									"    pm.response.to.have.status(401)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{beehiveIdForDeletion}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{beehiveIdForDeletion}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deleting a beehive using a role without permission",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 indicating no permission or wrong token\", function () {\r",
+									"    pm.response.to.have.status(403)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{beehiveIdForDeletion}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{beehiveIdForDeletion}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deleting a beehive using an ID for a beehive that doesnt exist",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {\r",
+									"    pm.response.to.have.status(404)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that beehive was not found\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{farmerUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/6604606bb343feb1d56d3359",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"6604606bb343feb1d56d3359"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deleting a beehive using a value that is not an id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 500\", function () {\r",
+									"    pm.response.to.have.status(500)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that an invalid ID was used\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{farmerUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/d",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"d"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Retrieveing current status for a beehive",
+			"item": [
+				{
+					"name": "Retrieving a beehives status successfully",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes the beehives status and links\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"beehiveStatus\")\r",
+									"    pm.expect(jsonData).to.have.property(\"_links\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{SchwartauBeehiveId}}/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{SchwartauBeehiveId}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieving a beehives status without being authenticated",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {\r",
+									"    pm.response.to.have.status(401)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{SchwartauBeehiveId}}/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{SchwartauBeehiveId}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieving a beehives status using an invalid token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 indicating wrong token\", function () {\r",
+									"    pm.response.to.have.status(403)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "fake token",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{SchwartauBeehiveId}}/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{SchwartauBeehiveId}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieving a beehives status using an ID for a beehive that doesnt exist",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {\r",
+									"    pm.response.to.have.status(404)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that beehive was not found\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/65fc6f8862ef4fdbcf8b2e22/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"65fc6f8862ef4fdbcf8b2e22",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieving a beehives status using a value that is not an id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 500\", function () {\r",
+									"    pm.response.to.have.status(500)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that an invalid ID was used\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/notanid/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"notanid",
+								"status"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Getting a beehives humidity data",
+			"item": [
+				{
+					"name": "Getting a beehives humidity data successfully",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes the beehives humidity data for within the specified timeframe and links\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"data\")\r",
+									"    pm.expect(jsonData).to.have.property(\"_links\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{SchwartauBeehiveId}}/humidity/2018-01-27/2018-01-28",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{SchwartauBeehiveId}}",
+								"humidity",
+								"2018-01-27",
+								"2018-01-28"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting a beehives humidity data without being authorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {\r",
+									"    pm.response.to.have.status(401)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{SchwartauBeehiveId}}/humidity/2018-01-27/2018-01-28",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{SchwartauBeehiveId}}",
+								"humidity",
+								"2018-01-27",
+								"2018-01-28"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting a beehives humidity data using an invalid token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 indicating wrong token\", function () {\r",
+									"    pm.response.to.have.status(403)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "fake token",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{SchwartauBeehiveId}}/humidity/2018-01-27/2018-01-28",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{SchwartauBeehiveId}}",
+								"humidity",
+								"2018-01-27",
+								"2018-01-28"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting a beehives humidity data using an ID for a beehive that doesnt exist",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {\r",
+									"    pm.response.to.have.status(404)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that beehive was not found\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/65fc6f8862ef4fdbcf8b2e21/humidity/2018-01-27/2018-01-28",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"65fc6f8862ef4fdbcf8b2e21",
+								"humidity",
+								"2018-01-27",
+								"2018-01-28"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting a beehives humidity data using a value that is not an id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 500\", function () {\r",
+									"    pm.response.to.have.status(500)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that an invalid ID was used\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/notanid/humidity/2018-01-27/2018-01-28",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"notanid",
+								"humidity",
+								"2018-01-27",
+								"2018-01-28"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Getting a beehives weight data",
+			"item": [
+				{
+					"name": "Getting a beehives weight data successfully",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes the beehives weight data for within the specified timeframe and links\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"data\")\r",
+									"    pm.expect(jsonData).to.have.property(\"_links\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{SchwartauBeehiveId}}/weight/2018-01-27/2018-01-28",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{SchwartauBeehiveId}}",
+								"weight",
+								"2018-01-27",
+								"2018-01-28"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting a beehives weight data without being authorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {\r",
+									"    pm.response.to.have.status(401)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{SchwartauBeehiveId}}/weight/2018-01-27/2018-01-28",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{SchwartauBeehiveId}}",
+								"weight",
+								"2018-01-27",
+								"2018-01-28"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting a beehives weight data using an invalid token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 indicating wrong token\", function () {\r",
+									"    pm.response.to.have.status(403)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "fake token",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{SchwartauBeehiveId}}/weight/2018-01-27/2018-01-28",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{SchwartauBeehiveId}}",
+								"weight",
+								"2018-01-27",
+								"2018-01-28"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting a beehives weight data using an ID for a beehive that doesnt exist",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {\r",
+									"    pm.response.to.have.status(404)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that beehive was not found\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/65fc6f8862ef4fdbcf8b2e29/weight/2018-01-27/2018-01-28",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"65fc6f8862ef4fdbcf8b2e29",
+								"weight",
+								"2018-01-27",
+								"2018-01-28"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting a beehives weight data using a value that is not an id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 500\", function () {\r",
+									"    pm.response.to.have.status(500)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that an invalid ID was used\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/notanid/weight/2018-01-27/2018-01-28",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"notanid",
+								"weight",
+								"2018-01-27",
+								"2018-01-28"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Getting a beehives temperature data",
+			"item": [
+				{
+					"name": "Getting a beehives temperature data successfully",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes the beehives temperature data within the specified timeframe and links\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"data\")\r",
+									"    pm.expect(jsonData).to.have.property(\"_links\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{SchwartauBeehiveId}}/temperature/2018-03-27/2018-03-28",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{SchwartauBeehiveId}}",
+								"temperature",
+								"2018-03-27",
+								"2018-03-28"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting a beehives temperature data without being authenticated",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {\r",
+									"    pm.response.to.have.status(401)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{SchwartauBeehiveId}}/temperature/2018-03-27/2018-03-28",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{SchwartauBeehiveId}}",
+								"temperature",
+								"2018-03-27",
+								"2018-03-28"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting a beehives temperature data using an invalid token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 indicating wrong token\", function () {\r",
+									"    pm.response.to.have.status(403)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "fake token",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{SchwartauBeehiveId}}/temperature/2018-03-27/2018-03-28",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{SchwartauBeehiveId}}",
+								"temperature",
+								"2018-03-27",
+								"2018-03-28"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting a beehives temperature data using an ID for a beehive that doesnt exist",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {\r",
+									"    pm.response.to.have.status(404)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that beehive was not found\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/65fc6f8862ef4fdbcf8b2e22/temperature/2018-03-27/2018-03-28",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"65fc6f8862ef4fdbcf8b2e22",
+								"temperature",
+								"2018-03-27",
+								"2018-03-28"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting a beehives temperature data using a value that is not an id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 500\", function () {\r",
+									"    pm.response.to.have.status(500)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that an invalid ID was used\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/notanid/temperature/2018-03-27/2018-03-28",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"notanid",
+								"temperature",
+								"2018-03-27",
+								"2018-03-28"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Getting a beehives flow data",
+			"item": [
+				{
+					"name": "Getting a beehives flow data successfully",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes the beehives flow data within the specified timeframe and links\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"data\")\r",
+									"    pm.expect(jsonData).to.have.property(\"_links\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{SchwartauBeehiveId}}/flow/2018-06-17/2018-06-18",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{SchwartauBeehiveId}}",
+								"flow",
+								"2018-06-17",
+								"2018-06-18"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting a beehives flow data without being authenticated",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {\r",
+									"    pm.response.to.have.status(401)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{SchwartauBeehiveId}}/flow/2018-06-17/2018-06-18",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{SchwartauBeehiveId}}",
+								"flow",
+								"2018-06-17",
+								"2018-06-18"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting a beehives flow data using an invalid token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 indicating wrong token\", function () {\r",
+									"    pm.response.to.have.status(403)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "fake token",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/{{SchwartauBeehiveId}}/flow/2018-06-17/2018-06-18",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"{{SchwartauBeehiveId}}",
+								"flow",
+								"2018-06-17",
+								"2018-06-18"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting a beehives flow data using an ID for a beehive that doesnt exist",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {\r",
+									"    pm.response.to.have.status(404)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that beehive was not found\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/65fc6f8862ef4fdbcf8b2e21/flow/2018-06-17/2018-06-18",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"65fc6f8862ef4fdbcf8b2e21",
+								"flow",
+								"2018-06-17",
+								"2018-06-18"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting a beehives temperature data using a value that is not an id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 500\", function () {\r",
+									"    pm.response.to.have.status(500)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that an invalid ID was used\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/beehives/notanid/flow/2018-06-17/2018-06-18",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"notanid",
+								"flow",
+								"2018-06-17",
+								"2018-06-18"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Creating a beehive transportation request",
+			"item": [
+				{
+					"name": "Creating a new beehive transportation request successfully",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let randomLocation = 'location' + Math.floor(Math.random()*1000000)\r",
+									"pm.environment.set('randomLocation', randomLocation)\r",
+									"\r",
+									"const now = new Date();\r",
+									"\r",
+									"const isoString = now.toISOString();\r",
+									"\r",
+									"pm.environment.set(\"currentTime\", isoString);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {\r",
+									"    pm.response.to.have.status(201)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes created beehive transportation details and links\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"request\")\r",
+									"    pm.expect(jsonData).to.have.property(\"_links\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{farmerUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"requestedUserId\": \"{{farmerId}}\",\r\n  \"requestedBeehiveId\": \"{{existingBeehive}}\",\r\n  \"requestedDate\": \"{{currentTime}}\",\r\n  \"requestedLocation\": \"{{randomLocation}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives/request-transportation",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"request-transportation"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Creating a new beehive transportation request without being authenticated",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let randomLocation = 'location' + Math.floor(Math.random()*1000000)\r",
+									"pm.environment.set('randomLocation', randomLocation)\r",
+									"\r",
+									"const now = new Date();\r",
+									"\r",
+									"const isoString = now.toISOString();\r",
+									"\r",
+									"pm.environment.set(\"currentTime\", isoString);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {\r",
+									"    pm.response.to.have.status(401)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"requestedUserId\": \"{{farmerId}}\",\r\n  \"requestedBeehiveId\": \"{{existingBeehive}}\",\r\n  \"requestedDate\": \"{{currentTime}}\",\r\n  \"requestedLocation\": \"{{randomLocation}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives/request-transportation",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"request-transportation"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Creating a new beehive transportation request using a role without permission",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 Forbidden\", function () {\r",
+									"    pm.response.to.have.status(403)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"requestedUserId\": \"{{farmerId}}\",\r\n  \"requestedBeehiveId\": \"{{existingBeehive}}\",\r\n  \"requestedDate\": \"{{currentTime}}\",\r\n  \"requestedLocation\": \"{{randomLocation}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives/request-transportation",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"request-transportation"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Creating a new beehive transportation request using an invalid user id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 500\", function () {\r",
+									"    pm.response.to.have.status(500)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that the requested user or beehive ID is invalid\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{farmerUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"requestedUserId\": \"i am a fake UserId\",\r\n  \"requestedBeehiveId\": \"{{existingBeehive}}\",\r\n  \"requestedDate\": \"{{currentTime}}\",\r\n  \"requestedLocation\": \"{{randomLocation}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives/request-transportation",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"request-transportation"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Creating a new beehive transportation request using an invalid beehive id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 500\", function () {\r",
+									"    pm.response.to.have.status(500)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that the requested user or beehive ID is invalid\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{farmerUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"requestedUserId\": \"{{farmerId}}\",\r\n  \"requestedBeehiveId\": \"I am a fake beehiveId\",\r\n  \"requestedDate\": \"{{currentTime}}\",\r\n  \"requestedLocation\": \"{{randomLocation}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives/request-transportation",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"request-transportation"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Creating a honey harvest report for a beehive",
+			"item": [
+				{
+					"name": "Creating a new honey harvest report for a beehive successfully",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const now = new Date();\r",
+									"\r",
+									"const isoString = now.toISOString();\r",
+									"\r",
+									"pm.environment.set(\"currentTime\", isoString);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {\r",
+									"    pm.response.to.have.status(201)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes created honey harvest report details and links\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"honeyHarvestReport\")\r",
+									"    pm.expect(jsonData).to.have.property(\"_links\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{farmerUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"userId\": \"{{farmerId}}\",\r\n  \"beehiveId\": \"{{existingBeehive}}\",\r\n  \"harvestDate\": \"{{currentTime}}\",\r\n  \"honeyAmount\": 0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives/report-harvest",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"report-harvest"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Creating a new honey harvest report for a beehive without being authenticated",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const now = new Date();\r",
+									"\r",
+									"const isoString = now.toISOString();\r",
+									"\r",
+									"pm.environment.set(\"currentTime\", isoString);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {\r",
+									"    pm.response.to.have.status(401)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"userId\": \"{{farmerId}}\",\r\n  \"beehiveId\": \"{{existingBeehive}}\",\r\n  \"harvestDate\": \"{{currentTime}}\",\r\n  \"honeyAmount\": 0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives/report-harvest",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"report-harvest"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Creating a new honey harvest report for a beehive using a role without permission",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 Forbidden\", function () {\r",
+									"    pm.response.to.have.status(403)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"requestedUserId\": \"{{farmerId}}\",\r\n  \"requestedBeehiveId\": \"{{existingBeehive}}\",\r\n  \"requestedDate\": \"{{currentTime}}\",\r\n  \"requestedLocation\": \"{{randomLocation}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives/report-harvest",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"report-harvest"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Creating a new honey harvest report for a beehive using an invalid user id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 500\", function () {\r",
+									"    pm.response.to.have.status(500)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that the requested user or beehive ID is invalid\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{farmerUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"requestedUserId\": \"I am an invalid userId\",\r\n  \"requestedBeehiveId\": \"{{existingBeehive}}\",\r\n  \"requestedDate\": \"{{currentTime}}\",\r\n  \"requestedLocation\": \"{{randomLocation}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives/report-harvest",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"report-harvest"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Creating a new honey harvest report using an invalid beehive id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 500\", function () {\r",
+									"    pm.response.to.have.status(500)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes an error message that indicates that the requested user or beehive ID is invalid\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"message\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{farmerUserToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"requestedUserId\": \"{{farmerId}}\",\r\n  \"requestedBeehiveId\": \"I am an invalid beehiveId\",\r\n  \"requestedDate\": \"{{currentTime}}\",\r\n  \"requestedLocation\": \"{{randomLocation}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/beehives/report-harvest",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"beehives",
+								"report-harvest"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Registering a webhook",
+			"item": [
+				{
+					"name": "Registering a new webhook",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {\r",
+									"    pm.response.to.have.status(201)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response includes webhook details\", function() {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData).to.have.property(\"webhook\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"url\": \"{{webhookSite}}\",\r\n  \"events\": [\r\n    \"beehiveCreated\",\r\n    \"beehiveUpdated\",\r\n    \"beehiveDeleted\",\r\n    \"beehiveTransportationRequestCreated\",\r\n    \"honeyHarvestReportCreated\"\r\n  ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/webhook/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"webhook",
+								"register"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://cscloud7-106.lnu.se/beehiveapi"
+		},
+		{
+			"key": "existingUser",
+			"value": "\"existingUser\"",
+			"type": "string"
+		},
+		{
+			"key": "farmerUserToken",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NjA0NWI2OWIzNDNmZWIxZDU2ZDMzMzUiLCJ1c2VybmFtZSI6IkZhcm1lciIsInJvbGUiOiJmYXJtZXIiLCJpYXQiOjE3MTE1NjE2MDgsImV4cCI6MjA3MTU1ODAwOH0.WpEk8OVZKBx2hTJAvo_XCgg25XKEU0MvauU9B4cxSZE"
+		},
+		{
+			"key": "userUserToken",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NjA0NDlmNWRjYWVjODM0NTdlZjhmMTEiLCJ1c2VybmFtZSI6IlVzZXIiLCJyb2xlIjoidXNlciIsImlhdCI6MTcxMTU2MTY0OSwiZXhwIjoyMDcxNTU4MDQ5fQ.d0PYJEXxzrITcuKlLazxS5BAw2A6bm-PgULU8T4qXj4",
+			"type": "string"
+		},
+		{
+			"key": "existingBeehive",
+			"value": "6604525d1a5cc860c00a9d79"
+		},
+		{
+			"key": "beehiveIdForDeletion",
+			"value": ""
+		},
+		{
+			"key": "SchwartauBeehiveId",
+			"value": "65fc6f8862ef4fdbcf8b2e2f"
+		},
+		{
+			"key": "farmerId",
+			"value": "66045b69b343feb1d56d3335"
+		},
+		{
+			"key": "webhookSite",
+			"value": "https://webhook.site/14241383-a4f8-45cf-9e6f-cb728f22d3a0"
+		}
+	]
+}
